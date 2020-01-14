@@ -27,23 +27,12 @@ assert.throws(function() {
   tls.createSecureContext({ secureProtocol: 'SSLv2_server_method' });
 }, errMessageSSLv2);
 
-const errMessageSSLv3 = /SSLv3 methods disabled/;
-
-assert.throws(function() {
-  tls.createSecureContext({ secureProtocol: 'SSLv3_method' });
-}, errMessageSSLv3);
-
-assert.throws(function() {
-  tls.createSecureContext({ secureProtocol: 'SSLv3_client_method' });
-}, errMessageSSLv3);
-
-assert.throws(function() {
-  tls.createSecureContext({ secureProtocol: 'SSLv3_server_method' });
-}, errMessageSSLv3);
-
-// Note that SSLv2 and SSLv3 are disallowed but SSLv2_method and friends are
+// Note that SSLv2 is disallowed but SSLv2_method and friends are
 // still accepted.  They are OpenSSL's way of saying that all known protocols
-// are supported unless explicitly disabled (which we do for SSLv2 and SSLv3.)
+// are supported unless explicitly disabled (which we do for SSLv2)
+tls.createSecureContext({ secureProtocol: 'SSLv3_method' });
+tls.createSecureContext({ secureProtocol: 'SSLv3_client_method' });
+tls.createSecureContext({ secureProtocol: 'SSLv3_server_method' });
 tls.createSecureContext({ secureProtocol: 'SSLv23_method' });
 tls.createSecureContext({ secureProtocol: 'SSLv23_client_method' });
 tls.createSecureContext({ secureProtocol: 'SSLv23_server_method' });

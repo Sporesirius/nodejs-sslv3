@@ -82,6 +82,7 @@ void ClientHelloParser::ParseHeader(const uint8_t* data, size_t avail) {
 
   // Check hello protocol version.  Protocol tuples that we know about:
   //
+  // (3,0) SSL v3.0
   // (3,1) TLS v1.0
   // (3,2) TLS v1.1
   // (3,3) TLS v1.2

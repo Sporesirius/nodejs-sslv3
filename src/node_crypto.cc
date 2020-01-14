@@ -560,10 +560,10 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
   if (args[0]->IsString()) {
     const node::Utf8Value sslmethod(env->isolate(), args[0]);
 
-    // Note that SSLv2 and SSLv3 are disallowed but SSLv23_method and friends
-    // are still accepted.  They are OpenSSL's way of saying that all known
+    // Note that SSLv2 is disallowed but SSLv23_method and friends
+    // are still accepted. They are OpenSSL's way of saying that all known
     // protocols below TLS 1.3 are supported unless explicitly disabled (which
-    // we do below for SSLv2 and SSLv3.)
+    // we do below for SSLv2)
     if (strcmp(*sslmethod, "SSLv2_method") == 0) {
       THROW_ERR_TLS_INVALID_PROTOCOL_METHOD(env, "SSLv2 methods disabled");
       return;
@@ -574,14 +574,23 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
       THROW_ERR_TLS_INVALID_PROTOCOL_METHOD(env, "SSLv2 methods disabled");
       return;
     } else if (strcmp(*sslmethod, "SSLv3_method") == 0) {
-      THROW_ERR_TLS_INVALID_PROTOCOL_METHOD(env, "SSLv3 methods disabled");
-      return;
+      #ifndef OPENSSL_NO_SSL3
+      method = SSLv3_method();
+      #else
+      return env->ThrowError("SSLv3 methods disabled");
+      #endif
     } else if (strcmp(*sslmethod, "SSLv3_server_method") == 0) {
-      THROW_ERR_TLS_INVALID_PROTOCOL_METHOD(env, "SSLv3 methods disabled");
-      return;
+      #ifndef OPENSSL_NO_SSL3
+      method = SSLv3_server_method();
+      #else
+      return env->ThrowError("SSLv3 methods disabled");
+      #endif
     } else if (strcmp(*sslmethod, "SSLv3_client_method") == 0) {
-      THROW_ERR_TLS_INVALID_PROTOCOL_METHOD(env, "SSLv3 methods disabled");
-      return;
+      #ifndef OPENSSL_NO_SSL3
+      method = SSLv3_client_method();
+      #else
+      return env->ThrowError("SSLv3 methods disabled");
+      #endif
     } else if (strcmp(*sslmethod, "SSLv23_method") == 0) {
       max_version = TLS1_2_VERSION;
     } else if (strcmp(*sslmethod, "SSLv23_server_method") == 0) {
@@ -647,9 +656,7 @@ void SecureContext::Init(const FunctionCallbackInfo<Value>& args) {
   // Disable SSLv2 in the case when method == TLS_method() and the
   // cipher list contains SSLv2 ciphers (not the default, should be rare.)
   // The bundled OpenSSL doesn't have SSLv2 support but the system OpenSSL may.
-  // SSLv3 is disabled because it's susceptible to downgrade attacks (POODLE.)
   SSL_CTX_set_options(sc->ctx_.get(), SSL_OP_NO_SSLv2);
-  SSL_CTX_set_options(sc->ctx_.get(), SSL_OP_NO_SSLv3);
 
   // Enable automatic cert chaining. This is enabled by default in OpenSSL, but
   // disabled by default in BoringSSL. Enable it explicitly to make the
